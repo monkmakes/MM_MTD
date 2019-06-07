@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <style>
+
+        table {
+            border-collapse: collapse;
+        }
+            
+        td, th {
+          border: 1px solid #999;
+          padding: 0.5rem;
+          text-align: left;
+        }
+        
+        .money {
+          border: 1px solid #999;
+          padding: 0.5rem;
+          text-align: right;
+        }
+            
+        tr {
+            page-break-inside: avoid;
+        }       
+    </style>
+
+
+</head>
+<body>
+<div class="container">
+
+
+    <h1>MonkMakes MTD</h1>
+
+    <a class="btn btn-primary" href="obligationsCall">Download Obligations and Send to MM Server</a>
+
+<% if (vat_return) { %>    
+    <h2>VAT Return for period <%=vat_return.start_date%> to <%=vat_return.end_date%></h2>
+
+    <table>
+        <tr><th>[1] VAT due on sales and other outputs.</th><td class="money"><%=vat_return.vatDueSales.to_gbp()%></td></tr>
+        <tr><th>[2] VAT due on acquisitions from other EC Member States.</th><td><%=vat_return.vatDueAcquisitions.to_gbp()%></td></tr>
+        <tr><th>[3] Total VAT due (the sum of [1] and [2]).</th><td><%=vat_return.totalVatDue.to_gbp()%></td></tr>
+        <tr><th>[4] VAT reclaimed on purchases and other inputs (including acquisitions from the EC).</th><td><%=vat_return.vatReclaimedCurrPeriod.to_gbp()%></td></tr>
+        <tr><th>[5] The difference between [3] and [4].</th><td><%=vat_return.netVatDue.to_gbp()%></td></tr>
+        <tr><th>[6] Total value of sales and all other outputs excluding any VAT.</th><td><%=vat_return.totalValueSalesExVAT.to_gbp()%></td></tr>
+        <tr><th>[7] Total value of purchases and all other inputs excluding any VAT (including exempt purchases).</th><td><%=vat_return.totalValuePurchasesExVAT.to_gbp()%></td></tr>
+        <tr><th>[8] Total value of all supplies of goods and related costs, excluding any VAT, to other EC member states.</th><td><%=vat_return.totalValueGoodsSuppliedExVAT.to_gbp()%></td></tr>
+        <tr><th>[9] Total value of acquisitions of goods and related costs excluding any VAT, from other EC member states.</th><td><%=vat_return.totalAcquisitionsExVAT.to_gbp()%></td></tr>
+    </table>
+
+</br>
+</br>
+
+    <form action="/submitVATCall" method="POST">
+        <input class="btn btn-primary" type="submit" value="Submit VAT Return to HMRC"/>
+    </form>
+
+<% } else { %>
+
+    <p>No VAT Return available. You must send one from the MonkMakes Server before you can submit a return.</p>
+<% } %>
+
+
+<% if (message) { %>
+
+    <p>Message: <%= message %></p>
+
+<% } %>
+</div>
+</body>
+</html>
