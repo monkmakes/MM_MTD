@@ -41,7 +41,7 @@ app.use(cookieSession({
   keys: ['oauth2Token', 'caller'],
   maxAge: 10 * 60 * 60 * 1000 // 10 hours
 }));
-const redirectUri = 'http://localhost:8080/oauth20/callback';     // This is passed to the request for oauth2 authorization. HMRC server will redirect here
+const redirectUri = 'http://10.10.10.200:8080/oauth20/callback';     // This is passed to the request for oauth2 authorization. HMRC server will redirect here
 
 
 // OAuth2 module
