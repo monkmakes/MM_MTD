@@ -154,12 +154,11 @@ function handleResponseObligations(res, err, apiResponse){
 
 // Call SUMBIT VAT RETURN  
 //
-// bug - first time autentication tries to callback as a get rather than a post after authorization
-app.post("/submitVATCall",(req,res) => {
+//
+app.get("/submitVATCall",(req,res) => {
   //req.session.oauth2Token = null;  // uncomment force re-authentication for testing
 
-  // remove start_date and end_date from data incase it upsets the API
-
+  // todo remove start_date and end_date from data incase it upsets the API
 
   message = null;
   if(req.session.oauth2Token){

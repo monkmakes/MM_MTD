@@ -30,6 +30,13 @@
         }       
     </style>
 
+    <script>
+        function confirm_submit() {
+            if(confirm("Do you really want to do this?")) {
+                document.location = '/submitVATCall';
+            }
+        }
+    </script>
 
 </head>
 <body>
@@ -58,9 +65,7 @@
 </br>
 </br>
 
-    <form action="/submitVATCall" method="POST">
-        <input class="btn btn-primary" type="submit" value="Submit VAT Return to HMRC"/>
-    </form>
+    <a class="btn btn-primary" onClick="confirm_submit()">Submit VAT Return to HMRC</a>
 
 <% } else { %>
 
