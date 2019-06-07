@@ -249,7 +249,7 @@ function sendObligationsToMMServer(obs){
   log.info('OBS')
   log.info(obs)
   request
-    .post('http://localhost:3000/accounts/vatObligations')
+    .post('http://0.0.0.0:3000/accounts/vatObligations')
     .send(obs)
     .end(function(err, res){
     if (err || !res.ok) {
