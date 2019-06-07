@@ -41,8 +41,7 @@ app.use(cookieSession({
   keys: ['oauth2Token', 'caller'],
   maxAge: 10 * 60 * 60 * 1000 // 10 hours
 }));
-const redirectUri = 'http://10.10.10.200:8080/oauth20/callback';     // This is passed to the request for oauth2 authorization. HMRC server will redirect here
-
+const redirectUri = 'http://localhost:8080/oauth20/callback';     // This is passed to the request for oauth2 authorization. HMRC server will redirect here
 
 // OAuth2 module
 const oauth2 = simpleOauthModule.create({                         // GLOBAL oauth2 - used for authorizing
@@ -74,6 +73,19 @@ app.get('/', (req, res) => {
     message: message        // messages to show the user in the UI
   });
 });
+
+// Security Headers
+const security_headers = {
+  'Gov-Client-Connection-Method': 'DESKTOP_APP_DIRECT',
+  'Gov-Client-Device-ID': 'a93825f3-3128-49ba-a56e-590191e289c2', //- generated using: https://www.guidgenerator.com/online-guid-generator.aspx
+  'Gov-Client-User-IDs': 'os=linda',
+  'Gov-Client-Timezone': 'UTC+01:00', // - but account for BST
+  'Gov-Client-Local-IPs': '10.10.10.103',
+  'Gov-Client-Screens': 'width=1920&height=1080&scaling-factor=1&colour-depth=24',
+  'Gov-Client-Window-Size': 'width=2560&height=1440',
+  'Gov-Client-User-Agent': 'Intel Mac OS X 10_11_6',
+  'Gov-Vendor-Version': 'MonkMakes%20MTD%20Software=1.0.0.build0023'
+};
 
 
 
@@ -127,6 +139,10 @@ function callApiGetObligations(resource, res, bearerToken) {
   const req = request
     .get(url)
     .accept(acceptHeader);
+  for (var header in security_headers) {
+    log.info("Key:" + header + " value" + security_headers[header]);
+    req.set(header, security_headers[header])
+  }
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);
@@ -157,9 +173,6 @@ function handleResponseObligations(res, err, apiResponse){
 //
 app.get("/submitVATCall",(req,res) => {
   //req.session.oauth2Token = null;  // uncomment force re-authentication for testing
-
-  // todo remove start_date and end_date from data incase it upsets the API
-
   message = null;
   if(req.session.oauth2Token){
     var accessToken = oauth2.accessToken.create(req.session.oauth2Token);
@@ -190,12 +203,18 @@ app.get("/submitVATCall",(req,res) => {
 
 
 function callApiPOST(resource, res, bearerToken, postData) {
+  delete postData.start_date;
+  delete postData.end_date;
+
   const acceptHeader = `application/vnd.hmrc.${serviceVersion}+json`;
   const url = apiBaseUrl + resource;
   log.info(`Calling ${url} with Accept: ${acceptHeader}`);
   const req = request
     .post(url, postData)
     .accept(acceptHeader);
+  for (var header in security_headers) {
+    req.set(header, security_headers[header])
+  }
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);
@@ -207,13 +226,16 @@ function callApiPOST(resource, res, bearerToken, postData) {
 function handleResponseSubmitReturn(res, err, apiResponse){
   if (err || !apiResponse.ok) {
     //log.error('Handling error response: ', err);
-    log.info('Message from error:' + err.response.text);
+    log.info('Message from error:' + err);
     // {"code":"BUSINESS_ERROR",
     //  "message":"Business validation error",
     //  "errors":[
     //    {"code":"DUPLICATE_SUBMISSION",
     //     "message":"The VAT return was already submitted for the given period."}]}
-    message = err.response.text;
+    message = err;
+    if (err.response && err.response.text) {
+      message = err.response.text;
+    }
     res.redirect('/');
   } else {
     var response_data = apiResponse.body;
