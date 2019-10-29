@@ -63,3 +63,30 @@ Gov-Vendor-Version: MonkMakes%20MTD%20Software=1.0.0.build0023
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+
+
+### Testing 
+
+When switching from test to live and vice-versa 
+
+To switch credentials, copy the contents of .env_production or .env_test onto .env and restart the server.
+
+You need to clear the session by uncommenting line 104 of app.js
+
+app.get("/obligationsCall",(req,res) => {
+  // req.session.oauth2Token = null;  // uncomment force re-authentication for testing
+
+.. then login, comment the line back up and then login again.
+
+
+### Security Header Fix
+
+HMRC have tightened the OAUTH2 process so that the initial request cannot contain a security header. 
+Unfortunately, the Simple-Oauth20 library puts ythis in by defailt, so line 50 of core.js is hobbled to 
+prevent the header being sent.
+
+    // ******** Nasty Hack *********
+    // SRM - effectively removed this next header option with the false &&
+    // oauth2 server call used to retrieve a valid token
+    } else if (false && config.options.useBasicAuthorizationHeader &&
+      config.client.id &&
