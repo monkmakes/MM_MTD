@@ -51,19 +51,24 @@
     <h2>VAT Return for period <%=vat_return.start_date%> to <%=vat_return.end_date%></h2>
 
     <table>
-        <tr><th>[1] VAT due on sales and other outputs.</th><td class="money"><%=vat_return.vatDueSales.to_gbp()%></td></tr>
-        <tr><th>[2] VAT due on acquisitions from other EC Member States.</th><td><%=vat_return.vatDueAcquisitions.to_gbp()%></td></tr>
-        <tr><th>[3] Total VAT due (the sum of [1] and [2]).</th><td><%=vat_return.totalVatDue.to_gbp()%></td></tr>
-        <tr><th>[4] VAT reclaimed on purchases and other inputs (including acquisitions from the EC).</th><td><%=vat_return.vatReclaimedCurrPeriod.to_gbp()%></td></tr>
-        <tr><th>[5] The difference between [3] and [4].</th><td><%=vat_return.netVatDue.to_gbp()%></td></tr>
-        <tr><th>[6] Total value of sales and all other outputs excluding any VAT.</th><td><%=vat_return.totalValueSalesExVAT.to_gbp()%></td></tr>
-        <tr><th>[7] Total value of purchases and all other inputs excluding any VAT (including exempt purchases).</th><td><%=vat_return.totalValuePurchasesExVAT.to_gbp()%></td></tr>
-        <tr><th>[8] Total value of all supplies of goods and related costs, excluding any VAT, to other EC member states.</th><td><%=vat_return.totalValueGoodsSuppliedExVAT.to_gbp()%></td></tr>
-        <tr><th>[9] Total value of acquisitions of goods and related costs excluding any VAT, from other EC member states.</th><td><%=vat_return.totalAcquisitionsExVAT.to_gbp()%></td></tr>
+        <tr><th>[1] VAT due on sales and other outputs.</th><td class="money"><%=vat_return.vatDueSales%></td></tr>
+        <tr><th>[2] VAT due on acquisitions from other EC Member States.</th><td class="money"><%=vat_return.vatDueAcquisitions%></td></tr>
+        <tr><th>[3] Total VAT due (the sum of [1] and [2]).</th><td class="money"><%=vat_return.totalVatDue%></td></tr>
+        <tr><th>[4] VAT reclaimed on purchases and other inputs (including acquisitions from the EC).</th><td class="money"><%=vat_return.vatReclaimedCurrPeriod%></td></tr>
+        <tr><th>[5] The difference between [3] and [4].</th><td class="money"><%=vat_return.netVatDue%></td></tr>
+        <tr><th>[6] Total value of sales and all other outputs excluding any VAT.</th><td class="money"><%=vat_return.totalValueSalesExVAT%></td></tr>
+        <tr><th>[7] Total value of purchases and all other inputs excluding any VAT (including exempt purchases).</th><td class="money"><%=vat_return.totalValuePurchasesExVAT%></td></tr>
+        <tr><th>[8] Total value of all supplies of goods and related costs, excluding any VAT, to other EC member states.</th><td class="money"><%=vat_return.totalValueGoodsSuppliedExVAT%></td></tr>
+        <tr><th>[9] Total value of acquisitions of goods and related costs excluding any VAT, from other EC member states.</th><td class="money"><%=vat_return.totalAcquisitionsExVAT%></td></tr>
     </table>
+</br>
+</br>
 
-</br>
-</br>
+<p><b>
+    When you submit this VAT information you are making a legal
+    declaration that the information is true and complete. A false declaration
+    can result in prosecution.
+</b></p>
 
     <a class="btn btn-primary" onClick="confirm_submit()">Submit VAT Return to HMRC</a>
 

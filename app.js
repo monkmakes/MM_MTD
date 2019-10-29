@@ -45,6 +45,7 @@ const redirectUri = 'http://localhost:8080/oauth20/callback';     // This is pas
 
 // OAuth2 module
 const oauth2 = simpleOauthModule.create({                         // GLOBAL oauth2 - used for authorizing
+  
   client: {
     id: clientId,
     secret: clientSecret,
@@ -52,15 +53,17 @@ const oauth2 = simpleOauthModule.create({                         // GLOBAL oaut
   auth: {
     tokenHost: apiBaseUrl,
     tokenPath: '/oauth/token',
+    //tokenPath: 'http://localhost:8081/',
     authorizePath: '/oauth/authorize',
   },
-});  
+
+}, { authorizationMethod: "body" });  
 
 // Authorization uri definition for reads and writes 
 const authorizationUri = oauth2.authorizationCode.authorizeURL({
   redirect_uri: redirectUri,
   response_type: 'code',
-  scope: 'write:vat+read:vat',
+  scope: 'read:vat+write:vat',
 });
 
 
@@ -80,10 +83,10 @@ const security_headers = {
   'Gov-Client-Device-ID': 'a93825f3-3128-49ba-a56e-590191e289c2', //- generated using: https://www.guidgenerator.com/online-guid-generator.aspx
   'Gov-Client-User-IDs': 'os=linda',
   'Gov-Client-Timezone': 'UTC+01:00', // - but account for BST
-  'Gov-Client-Local-IPs': '10.10.10.103',
+  'Gov-Client-Local-IPs': '10.10.10.100',
   'Gov-Client-Screens': 'width=1920&height=1080&scaling-factor=1&colour-depth=24',
   'Gov-Client-Window-Size': 'width=2560&height=1440',
-  'Gov-Client-User-Agent': 'Intel Mac OS X 10_11_6',
+  'Gov-Client-User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
   'Gov-Vendor-Version': 'MonkMakes%20MTD%20Software=1.0.0.build0023'
 };
 
@@ -98,6 +101,7 @@ const security_headers = {
 // if there wasn't an auth token on the session then redirect the response to the Auth server's web interface
 // the user then logs in and grants permissions for read and write on the VAT API.
 app.get("/obligationsCall",(req,res) => {
+  // req.session.oauth2Token = null;  // uncomment force re-authentication for testing
   message = null; 
   // set the obligations date range from 1 year ago up to current date
   var today = new Date()
@@ -133,16 +137,18 @@ app.get("/obligationsCall",(req,res) => {
 
 // Actually call the HMRC obligations API
 function callApiGetObligations(resource, res, bearerToken) {
+  log.info('IN callApiGetObligations');
   const acceptHeader = `application/vnd.hmrc.${serviceVersion}+json`;
   const url = apiBaseUrl + resource;
   log.info(`Calling ${url} with Accept: ${acceptHeader}`);
   const req = request
     .get(url)
     .accept(acceptHeader);
-  for (var header in security_headers) {
-    log.info("Key:" + header + " value" + security_headers[header]);
-    req.set(header, security_headers[header])
-  }
+  //req.set(security_headers);
+  // for (var header in security_headers) {
+  //   log.info("Key:" + header + " value" + security_headers[header]);
+  //   req.set(header, security_headers[header])
+  // }
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);
@@ -172,7 +178,7 @@ function handleResponseObligations(res, err, apiResponse){
 //
 //
 app.get("/submitVATCall",(req,res) => {
-  //req.session.oauth2Token = null;  // uncomment force re-authentication for testing
+  // req.session.oauth2Token = null;  // uncomment force re-authentication for testing
   message = null;
   if(req.session.oauth2Token){
     var accessToken = oauth2.accessToken.create(req.session.oauth2Token);
@@ -206,15 +212,18 @@ function callApiPOST(resource, res, bearerToken, postData) {
   delete postData.start_date;
   delete postData.end_date;
 
+  log.info(postData)
+
   const acceptHeader = `application/vnd.hmrc.${serviceVersion}+json`;
   const url = apiBaseUrl + resource;
   log.info(`Calling ${url} with Accept: ${acceptHeader}`);
   const req = request
     .post(url, postData)
     .accept(acceptHeader);
-  for (var header in security_headers) {
-    req.set(header, security_headers[header])
-  }
+  req.set(security_headers);
+  // for (var header in security_headers) {
+  //   req.set(header, security_headers[header])
+  // }
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);
@@ -239,8 +248,8 @@ function handleResponseSubmitReturn(res, err, apiResponse){
     res.redirect('/');
   } else {
     var response_data = apiResponse.body;
-    message = response_data;
-    log.info(response_data);
+    message = JSON.stringify(response_data);
+    log.info(message);
     res.redirect('/');
   }
 };
@@ -253,15 +262,15 @@ function handleResponseSubmitReturn(res, err, apiResponse){
 // Receive a VAT return from the MM server and save it. 
 app.post("/saveVATReturn",(req,res) => {
   vat_return = req.body;
-  vat_return.vatDueSales = parseFloat(vat_return.vatDueSales);
-  vat_return.vatDueAcquisitions = parseFloat(vat_return.vatDueAcquisitions);
-  vat_return.totalVatDue = parseFloat(vat_return.totalVatDue);
-  vat_return.vatReclaimedCurrPeriod = parseFloat(vat_return.vatReclaimedCurrPeriod);
-  vat_return.netVatDue = parseFloat(vat_return.netVatDue);
-  vat_return.totalValueSalesExVAT = parseFloat(vat_return.totalValueSalesExVAT);
-  vat_return.totalValuePurchasesExVAT = parseFloat(vat_return.totalValuePurchasesExVAT);
-  vat_return.totalValueGoodsSuppliedExVAT = parseFloat(vat_return.totalValueGoodsSuppliedExVAT);
-  vat_return.totalAcquisitionsExVAT = parseFloat(vat_return.totalAcquisitionsExVAT);
+  // vat_return.vatDueSales = parseFloat(vat_return.vatDueSales);
+  // vat_return.vatDueAcquisitions = parseFloat(vat_return.vatDueAcquisitions);
+  // vat_return.totalVatDue = parseFloat(vat_return.totalVatDue);
+  // vat_return.vatReclaimedCurrPeriod = parseFloat(vat_return.vatReclaimedCurrPeriod);
+  // vat_return.netVatDue = parseFloat(vat_return.netVatDue);
+  // vat_return.totalValueSalesExVAT = parseFloat(vat_return.totalValueSalesExVAT);
+  // vat_return.totalValuePurchasesExVAT = parseFloat(vat_return.totalValuePurchasesExVAT);
+  // vat_return.totalValueGoodsSuppliedExVAT = parseFloat(vat_return.totalValueGoodsSuppliedExVAT);
+  // vat_return.totalAcquisitionsExVAT = parseFloat(vat_return.totalAcquisitionsExVAT);
   vat_return.finalised = true;
   res.send("OK");
 });
@@ -271,7 +280,7 @@ function sendObligationsToMMServer(obs){
   log.info('OBS')
   log.info(obs)
   request
-    .post('http://10.10.10.200:3000/accounts/vatObligations')
+    .post('http://localhost:3000/accounts/vatObligations')
     .send(obs)
     .end(function(err, res){
     if (err || !res.ok) {
@@ -293,6 +302,7 @@ app.get('/oauth20/callback', (req, res) => {
   };
 
   oauth2.authorizationCode.getToken(options, (error, result) => {
+    log.info("HERE " + JSON.stringify(options));
     if (error) {
       log.error('Access Token Error: ', error);
       return res.json('Authentication failed');
@@ -304,9 +314,6 @@ app.get('/oauth20/callback', (req, res) => {
     res.redirect(req.session.caller); // how do I make this do POST too????
   });
 });
-
-
-
 
 
 // Helpers
@@ -327,3 +334,4 @@ Number.prototype.to_gbp = function() {
 app.listen(8080,() => {
   log.info('Started at http://localhost:8080');
 });
+
