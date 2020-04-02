@@ -81,15 +81,42 @@ app.get('/', (req, res) => {
 const security_headers = {
   'Gov-Client-Connection-Method': 'DESKTOP_APP_DIRECT',
   'Gov-Client-Device-ID': 'a93825f3-3128-49ba-a56e-590191e289c2', //- generated using: https://www.guidgenerator.com/online-guid-generator.aspx
+  'Gov-Client-MAC-Addresses': 'a0%3A99%3A9b%3A15%3A9a%3Ac3', // will need to change if you change your mac - also r/:/%3a on actual mac address
+  'Gov-Client-User-Agent': 'MacOS/10.15+ (Apple/Macbookpro+)', // OS Family/OS Version+ (Device Manufacturer/Device Model+)
+  //'Gov-Client-User-Agent': 'node-superagent/3.3.1',
+  //'Gov-Client-User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
+  //'Gov-Client-User-Agent': 'Windows/XP Windows/NT (Dell/XPS15 Dell/XPS13)',
   'Gov-Client-User-IDs': 'os=linda',
   'Gov-Client-Timezone': 'UTC+01:00', // - but account for BST
   'Gov-Client-Local-IPs': '10.10.10.100',
   'Gov-Client-Screens': 'width=1920&height=1080&scaling-factor=1&colour-depth=24',
   'Gov-Client-Window-Size': 'width=2560&height=1440',
-  'Gov-Client-User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
   'Gov-Vendor-Version': 'MonkMakes%20MTD%20Software=1.0.0.build0023'
 };
 
+// Test fraud headers in isolation
+app.get("/testHeaders",(req, res) => {
+  log.info('in test headers');
+  var accessToken = oauth2.accessToken.create(req.session.oauth2Token);
+  var bearerToken = accessToken.token.access_token;
+  const url = apiBaseUrl + 'test/fraud-prevention-headers/validate';
+  log.info('url=' + url);
+  const outgoing_req = request.get(url);
+  outgoing_req.set('Authorization', `Bearer ${bearerToken}`);
+  //log.info(outgoing_req);
+  outgoing_req.set(security_headers);
+  outgoing_req.end((err, apiResponse) => handleResponseHeaderTest(res, err, apiResponse));
+});
+function handleResponseHeaderTest(res, err, apiResponse){
+  if (err || !apiResponse.ok) {
+    log.error('Handling error response: ', err);
+    message = err;
+    res.redirect('/');
+  } else {
+      log.info(apiResponse.body);
+      res.redirect('/');
+  }
+};
 
 
 // Call OBLIGATIONS - request handler
@@ -101,7 +128,7 @@ const security_headers = {
 // if there wasn't an auth token on the session then redirect the response to the Auth server's web interface
 // the user then logs in and grants permissions for read and write on the VAT API.
 app.get("/obligationsCall",(req,res) => {
-  // req.session.oauth2Token = null;  // uncomment force re-authentication for testing
+  //req.session.oauth2Token = null;  // uncomment force re-authentication for testing
   message = null; 
   // set the obligations date range from 1 year ago up to current date
   var today = new Date()
@@ -135,6 +162,8 @@ app.get("/obligationsCall",(req,res) => {
   }
 });
 
+
+
 // Actually call the HMRC obligations API
 function callApiGetObligations(resource, res, bearerToken) {
   log.info('IN callApiGetObligations');
@@ -144,11 +173,7 @@ function callApiGetObligations(resource, res, bearerToken) {
   const req = request
     .get(url)
     .accept(acceptHeader);
-  //req.set(security_headers);
-  // for (var header in security_headers) {
-  //   log.info("Key:" + header + " value" + security_headers[header]);
-  //   req.set(header, security_headers[header])
-  // }
+  req.set(security_headers);
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);
@@ -178,7 +203,7 @@ function handleResponseObligations(res, err, apiResponse){
 //
 //
 app.get("/submitVATCall",(req,res) => {
-  // req.session.oauth2Token = null;  // uncomment force re-authentication for testing
+  //req.session.oauth2Token = null;  // uncomment force re-authentication for testing
   message = null;
   if(req.session.oauth2Token){
     var accessToken = oauth2.accessToken.create(req.session.oauth2Token);
@@ -221,9 +246,6 @@ function callApiPOST(resource, res, bearerToken, postData) {
     .post(url, postData)
     .accept(acceptHeader);
   req.set(security_headers);
-  // for (var header in security_headers) {
-  //   req.set(header, security_headers[header])
-  // }
   if(bearerToken) {
     log.info('Using bearer token:', bearerToken);
     req.set('Authorization', `Bearer ${bearerToken}`);

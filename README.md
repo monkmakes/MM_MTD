@@ -90,3 +90,4 @@ prevent the header being sent.
     // oauth2 server call used to retrieve a valid token
     } else if (false && config.options.useBasicAuthorizationHeader &&
       config.client.id &&
+

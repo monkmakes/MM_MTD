@@ -1,0 +1,13 @@
+{"specVersion":"2.x","code":"INVALID_HEADERS","message":"Some of the supplied headers are invalid.","errors":
+[
+    {"code":"MISSING_HEADER","message":"The header is missing.","headers":["gov-client-mac-addresses"]},
+    {"code":"INVALID_HEADER","message":"The header value is not in the format: 'OS Family/OS Version+ (Device Manufacturer/Device Model+)'.","headers":["gov-client-user-agent"]},
+    {"code":"INVALID_HEADER","message":"At least one value for 'OS Family' is missing.","headers":
+        [
+            "gov-client-user-agent"]},
+            {"code":"INVALID_HEADER","message":"At least one value for 'OS Version' is missing.",
+            "headers":["gov-client-user-agent"]},
+            {"code":"INVALID_HEADER","message":"At least one value for 'Device Manufacturer' is missing.",
+            "headers":["gov-client-user-agent"]},
+            {"code":"INVALID_HEADER","message":"At least one value for 'Device Model' is missing.","headers":["gov-client-user-agent"]}],"warnings":[{"code":"MISSING_HEADER","message":"The header is missing. This may be correct if only a single factor (for example, username and password) is being used. We may ask for clarification.","headers":["gov-client-multi-factor"]},
+{"code":"MISSING_HEADER","message":"The header is missing.","headers":["gov-vendor-license-ids"]}]}
